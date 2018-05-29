@@ -4,7 +4,7 @@ export default class App extends Component {
 
   constructor(props) {
     super(props)
-    this.state = { itemOne: false, itemTwo: false, itemThree: false, itemFour: false, itemFive: false }
+    this.state = { itemOne: false, itemTwo: false, itemThree: false, itemFour: false, itemFive: false, itemSix: false }
   }
 
   render() {
@@ -42,20 +42,29 @@ export default class App extends Component {
             </ListItem>
             <ListItem onPress={() => this.setState({ itemFour: !this.state.itemFour })}>
               <CheckBox checked={this.state.itemFour}
-			    color="green" onPress={() => this.setState({ itemFour: !this.state.itemFour })} />
+			    color="blue" onPress={() => this.setState({ itemFour: !this.state.itemFour })} />
               <Body>
-                <Input placeholder="Study Foreign Language"
+                <Input placeholder="Practice Music"
                   onChangeText={(text) => this.setState({ itemFourText: text })}
                   value={this.state.itemFourText} />
               </Body>
             </ListItem>
-            <ListItem onPress={() => this.setState({ itemFive: !this.state.itemFive })}>
-              <CheckBox checked={this.state.itemFive} color="green"
-			  	onPress={() => this.setState({ itemFive: !this.state.itemFive })} />
+            <ListItem onPress={() => this.setState({ itemFive: !this.state.itemFour })}>
+              <CheckBox checked={this.state.itemFive}
+			    color="green" onPress={() => this.setState({ itemFive: !this.state.itemFive })} />
               <Body>
-                <Input placeholder="Study Coding"
+                <Input placeholder="Study Foreign Language"
                   onChangeText={(text) => this.setState({ itemFiveText: text })}
                   value={this.state.itemFiveText} />
+              </Body>
+            </ListItem>
+            <ListItem onPress={() => this.setState({ itemSix: !this.state.itemSix })}>
+              <CheckBox checked={this.state.itemSix} color="green"
+			  	onPress={() => this.setState({ itemSix: !this.state.itemSix })} />
+              <Body>
+                <Input placeholder="Study Coding"
+                  onChangeText={(text) => this.setState({ itemSixText: text })}
+                  value={this.state.itemSixText} />
               </Body>
             </ListItem>
           </Form>
