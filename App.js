@@ -4,7 +4,15 @@ export default class App extends Component {
 
   constructor(props) {
     super(props)
-    this.state = { itemOne: false, itemTwo: false, itemThree: false, itemFour: false, itemFive: false, itemSix: false }
+    this.state = { 
+		itemOne: false, itemTwo: false, itemThree: false, itemFour: false, itemFive: false, itemSix: false, itemSeven: false
+	}
+	this._onCheckPress = this._onCheckPress.bind(this);
+  }
+  _onCheckPress(item) {
+	//this.setState({ itemSix: !this.state.item })
+	this.setState({ itemSix: !item }) ;//works with item as this.state.itemSix
+	this.setState({ itemSeven: !this.state.itemSeven })
   }
 
   render() {
@@ -49,7 +57,7 @@ export default class App extends Component {
                   value={this.state.itemFourText} />
               </Body>
             </ListItem>
-            <ListItem onPress={() => this.setState({ itemFive: !this.state.itemFour })}>
+            <ListItem onPress={() => this.setState({ itemFive: !this.state.itemFive })}>
               <CheckBox checked={this.state.itemFive}
 			    color="green" onPress={() => this.setState({ itemFive: !this.state.itemFive })} />
               <Body>
@@ -58,18 +66,27 @@ export default class App extends Component {
                   value={this.state.itemFiveText} />
               </Body>
             </ListItem>
-            <ListItem onPress={() => this.setState({ itemSix: !this.state.itemSix })}>
+            <ListItem>
               <CheckBox checked={this.state.itemSix} color="green"
-			  	onPress={() => this.setState({ itemSix: !this.state.itemSix })} />
+			  	onPress={
+					() => this._onCheckPress(this.state.itemSix)
+				} />
               <Body>
                 <Input placeholder="Study Coding"
                   onChangeText={(text) => this.setState({ itemSixText: text })}
                   value={this.state.itemSixText} />
               </Body>
             </ListItem>
+			<ListItem>
+			  <CheckBox checked={this.state.itemSeven} color="black"/>
+			  <Body>
+			    <Text>Still some tasks remaining</Text>
+			  </Body>
+			</ListItem>
           </Form>
         </Content>
       </Container>
     );
   }
 }
+					//() => this.setState({ itemSix: !this.state.itemSix, itemSeven: !this.state.itemSeven })
