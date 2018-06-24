@@ -1,7 +1,7 @@
 {
   "expo": {
 	"name": "Daily ToDo List",
-	"icon": "/Users/charlie/ToDoListReactNative/red-check-mark.png",
+	"icon": "red-check-mark.png",
 	"version": "1.0.0",
 	"slug": "daily-todo-list",
     "sdkVersion": "26.0.0",
