@@ -1,31 +1,69 @@
 import React, { Component } from 'react';
-import { Container, Header, Content, ListItem, CheckBox, Text, Body, Form, Input } from 'native-base';
-export default class App extends Component {
+import {
+	Container, Header, Content, ListItem, CheckBox, Text, Body, Form, Input
+} from 'native-base';
+import { AsyncStorage } from 'react-native';
 
+const incompleteText = "Hang in there";
+const completeText = "All Done! Congrats!";
+
+export default class DailyToDoList extends Component {
   constructor(props) {
     super(props)
     this.state = { 
 		taskBools: [false, false, false, false, false, false],
 		isComplete: false,
-		isCompleteText: "Still some tasks remaining"
+		isCompleteText: incompleteText,
 	}
 	this.onCheckPress = this.onCheckPress.bind(this);
   }
 
+  async storeItem(key, item) {
+    try {
+      var jsonOfItem = AsyncStorage.setItem(key, JSON.stringify(item));
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+
+  async retrieveItem(key) {
+    try {
+      var retrievedItem = await AsyncStorage.getItem(key);
+	  return retrievedItem;
+    } catch (error) {
+      console.log(error.message);
+    }
+    return
+  }
+
+  componentDidMount() {
+    AsyncStorage.getItem('key', (err, result) => {
+	//result should be a non-empty string-array of bools
+	if (!err && result && typeof(result) === 'string' && result !== '[]'){
+		let taskBools = JSON.parse(result);
+		this.setState({ taskBools }, () => this.checkCallback());
+	}
+	});
+  }
+
   checkCallback() {
-	if ( this.state.taskBools.every(function(value) { return value == true }) ) {
+	if ( this.state.taskBools.every(function(value) { return value === true }) ) {
 		this.setState({ isComplete: true });
-		this.setState({ isCompleteText: "All Done! Congrats!" });
+		this.setState({ isCompleteText: completeText });
 	} else {
 		this.setState({ isComplete: false });
-		this.setState({ isCompleteText: "Still some tasks remaining" })
+		this.setState({ isCompleteText: incompleteText });
 	}
+	this.retrieveItem('key').then((item) => {
+		//debug line
+	});
   }
   
   onCheckPress(num, item) {
 	let taskBools = [ ...this.state.taskBools ];
-		taskBools[num] = !item;
-		this.setState({ taskBools }, () => this.checkCallback());
+	taskBools[num] = !item;
+    this.storeItem('key', taskBools);
+	this.setState({ taskBools }, () => this.checkCallback());
   }
 
   render() {
