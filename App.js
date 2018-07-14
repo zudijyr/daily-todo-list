@@ -11,12 +11,14 @@ export default class DailyToDoList extends Component {
   constructor(props) {
     super(props)
     this.state = { 
-		taskBools: [false, false, false, false, false, false, false],
+		taskBools: [false, false, false, false, false, false],
+		itemTexts: ['Aerobic Exercise', 'Anaerobic Exercise', 'Meditation',
+			'Practice Music', 'Study Foreign Language', 'Study Coding'],
 		isComplete: false,
 		isCompleteText: incompleteText,
-		taskLevels:    [0,0,0,5, 0,0,0],
-		taskProgress:  [0,0,2,34,0,0,2],
-		taskRemaining: [3,3,1,1, 3,3,1],
+		taskLevels:    [0,0,0,0,0,0,0],
+		taskProgress:  [0,0,0,0,0,0,0],
+		taskRemaining: [3,3,3,3,3,3,3],
 	}
 	this.onCheckPress = this.onCheckPress.bind(this);
   }
@@ -29,22 +31,31 @@ export default class DailyToDoList extends Component {
     }
   }
 
-  async retrieveItem(key) {
-    try {
-      var retrievedItem = await AsyncStorage.getItem(key);
-	  return retrievedItem;
-    } catch (error) {
-      console.log(error.message);
-    }
-    return
-  }
-
   componentDidMount() {
-    AsyncStorage.getItem('key', (err, result) => {
 	//result should be a non-empty string-array of bools
+	//taskBools don't won't load status until I add a way to clear them based on date
+    //AsyncStorage.getItem('taskBools', (err, result) => {
+	//if (!err && result && typeof(result) === 'string' && result !== '[]'){
+	//	let taskBools = JSON.parse(result);
+	//	this.setState({ taskBools });
+	//}
+	//});
+    AsyncStorage.getItem('taskLevels', (err, result) => {
 	if (!err && result && typeof(result) === 'string' && result !== '[]'){
-		let taskBools = JSON.parse(result);
-		this.setState({ taskBools });
+		let taskLevels = JSON.parse(result);
+		this.setState({ taskLevels });
+	}
+	});
+    AsyncStorage.getItem('taskProgress', (err, result) => {
+	if (!err && result && typeof(result) === 'string' && result !== '[]'){
+		let taskProgress = JSON.parse(result);
+		this.setState({ taskProgress });
+	}
+	});
+    AsyncStorage.getItem('taskRemaining', (err, result) => {
+	if (!err && result && typeof(result) === 'string' && result !== '[]'){
+		let taskRemaining = JSON.parse(result);
+		this.setState({ taskRemaining });
 	}
 	});
   }
@@ -52,21 +63,21 @@ export default class DailyToDoList extends Component {
   checkCallback() {
 	let taskProgress = [ ...this.state.taskProgress ];
 	let taskRemaining = [ ...this.state.taskRemaining ];
-	if ( this.state.taskBools.every(function(value) { return value === true }) ) {
+	let isComplete = this.state.isComplete;
+	console.log(isComplete);
+	console.log(this.state.taskBools);
+	if ( this.state.taskBools.every(function(value) { return value === true }) && !isComplete) {
 		this.setState({ isComplete: true });
 		this.setState({ isCompleteText: completeText });
 		taskProgress[6] += 1;
 		taskRemaining[6] -= 1;
-	} else {
+	} else if (isComplete) {
 		this.setState({ isComplete: false });
 		this.setState({ isCompleteText: incompleteText });
 		taskProgress[6] -= 1;
 		taskRemaining[6] += 1;
 	}
 	this.setState({ taskProgress, taskRemaining }, () => this.levelsCallback(6));
-	this.retrieveItem('key').then((item) => {
-		//debug line
-	});
   }
 
   levelsCallback(num) {
@@ -89,6 +100,9 @@ export default class DailyToDoList extends Component {
 		}
 		this.setState({ taskLevels, taskProgress, taskRemaining });
 	}
+    this.storeItem('taskProgress', taskProgress);
+    this.storeItem('taskLevels', taskLevels);
+    this.storeItem('taskRemaining', taskRemaining);
   }
   
   onCheckPress(num, item) {
@@ -103,7 +117,7 @@ export default class DailyToDoList extends Component {
 		taskProgress[num] -= 1;
 		taskRemaining[num] += 1;
 	}
-    this.storeItem('key', taskBools);
+    //this.storeItem('taskBools', taskBools);
 	this.setState({ taskBools }, () => this.checkCallback());
 	this.setState({ taskProgress, taskRemaining }, () => this.levelsCallback(num));
   }
@@ -126,7 +140,7 @@ export default class DailyToDoList extends Component {
 					() => this.onCheckPress(0, this.state.taskBools[0] )
 				} />
               <Body>
-                <Input placeholder= "Aerobic Exercise"
+                <Input placeholder= {this.state.itemTexts[0]}
                   onChangeText={(text) => this.setState({ itemOneText: text })}
                   value={this.state.itemOneText} />
 			      <Text>Current level: {this.state.taskLevels[0]}</Text>
@@ -140,7 +154,7 @@ export default class DailyToDoList extends Component {
 					() => this.onCheckPress(1, this.state.taskBools[1])
 				} />
               <Body>
-                <Input placeholder="Anaerobic Exercise"
+                <Input placeholder={this.state.itemTexts[1]}
                   onChangeText={(text) => this.setState({ itemTwoText: text })}
                   value={this.state.itemTwoText} />
 			      <Text>Current level: {this.state.taskLevels[1]}</Text>
@@ -154,7 +168,7 @@ export default class DailyToDoList extends Component {
 					() => this.onCheckPress(2, this.state.taskBools[2])
 				} />
               <Body>
-                <Input placeholder="Meditation"
+                <Input placeholder={this.state.itemTexts[2]}
                   onChangeText={(text) => this.setState({ itemThreeText: text })}
                   value={this.state.itemThreeText} />
 			      <Text>Current level: {this.state.taskLevels[2]}</Text>
@@ -168,7 +182,7 @@ export default class DailyToDoList extends Component {
 					() => this.onCheckPress(3, this.state.taskBools[3])
 				} />
               <Body>
-                <Input placeholder="Practice Music"
+                <Input placeholder={this.state.itemTexts[3]}
                   onChangeText={(text) => this.setState({ itemFourText: text })}
                   value={this.state.itemFourText} />
 			      <Text>Current level: {this.state.taskLevels[3]}</Text>
@@ -182,7 +196,7 @@ export default class DailyToDoList extends Component {
 					() => this.onCheckPress(4, this.state.taskBools[4])
 				} />
               <Body>
-                <Input placeholder="Study Foreign Language"
+                <Input placeholder={this.state.itemTexts[4]}
                   onChangeText={(text) => this.setState({ itemFiveText: text })}
                   value={this.state.itemFiveText} />
 			      <Text>Current level: {this.state.taskLevels[4]}</Text>
@@ -196,7 +210,7 @@ export default class DailyToDoList extends Component {
 					() => this.onCheckPress(5, this.state.taskBools[5])
 				} />
               <Body>
-                <Input placeholder="Study Coding"
+                <Input placeholder={this.state.itemTexts[5]}
                   onChangeText={(text) => this.setState({ itemSixText: text })}
                   value={this.state.itemSixText} />
 			      <Text>Current level: {this.state.taskLevels[5]}</Text>
