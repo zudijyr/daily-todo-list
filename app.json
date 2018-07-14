@@ -2,7 +2,7 @@
   "expo": {
 	"name": "Daily ToDo List",
 	"icon": "red-check-mark.png",
-	"version": "1.0.0",
+	"version": "1.0.2",
 	"slug": "daily-todo-list",
     "sdkVersion": "26.0.0",
 	"android": {
