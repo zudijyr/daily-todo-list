@@ -77,6 +77,12 @@ export default class DailyToDoList extends Component {
         <Content padder>
           <Form>
             <Text>Daily ToDo List</Text>
+			<ListItem>
+			  <CheckBox checked={this.state.isComplete} color="black"/>
+			  <Body>
+			    <Text>{this.state.isCompleteText}</Text>
+			  </Body>
+			</ListItem>
             <ListItem>
               <CheckBox checked={this.state.taskBools[0]} color="red"
 			  	onPress={
@@ -152,7 +158,7 @@ export default class DailyToDoList extends Component {
 			<ListItem>
 			  <CheckBox checked={this.state.isComplete} color="black"/>
 			  <Body>
-			    <Text>{this.state.isCompleteText}</Text>
+			    <Text>Finished all daily tasks</Text>
 			    <Text>Current progress: {this.state.taskProgress[6]}</Text>
 			  </Body>
 			</ListItem>
