@@ -14,6 +14,8 @@ export default class DailyToDoList extends Component {
 		taskBools: [false, false, false, false, false, false],
 		isComplete: false,
 		isCompleteText: incompleteText,
+		taskLevels: [0,0,0,0,0,0,0],
+		taskProgress: [0,0,0,0,0,0,0],
 	}
 	this.onCheckPress = this.onCheckPress.bind(this);
   }
@@ -61,9 +63,12 @@ export default class DailyToDoList extends Component {
   
   onCheckPress(num, item) {
 	let taskBools = [ ...this.state.taskBools ];
+	let taskProgress = [ ...this.state.taskProgress ];
 	taskBools[num] = !item;
+	taskProgress[num] += 1;
     this.storeItem('key', taskBools);
 	this.setState({ taskBools }, () => this.checkCallback());
+	this.setState({ taskProgress });
   }
 
   render() {
@@ -81,6 +86,7 @@ export default class DailyToDoList extends Component {
                 <Input placeholder= "Aerobic Exercise"
                   onChangeText={(text) => this.setState({ itemOneText: text })}
                   value={this.state.itemOneText} />
+			      <Text>Current progress: {this.state.taskProgress[0]}</Text>
               </Body>
             </ListItem>
             <ListItem>
@@ -92,6 +98,7 @@ export default class DailyToDoList extends Component {
                 <Input placeholder="Anaerobic Exercise"
                   onChangeText={(text) => this.setState({ itemTwoText: text })}
                   value={this.state.itemTwoText} />
+			      <Text>Current progress: {this.state.taskProgress[1]}</Text>
               </Body>
             </ListItem>
             <ListItem>
@@ -103,6 +110,7 @@ export default class DailyToDoList extends Component {
                 <Input placeholder="Meditation"
                   onChangeText={(text) => this.setState({ itemThreeText: text })}
                   value={this.state.itemThreeText} />
+			      <Text>Current progress: {this.state.taskProgress[2]}</Text>
               </Body>
             </ListItem>
             <ListItem>
@@ -114,6 +122,7 @@ export default class DailyToDoList extends Component {
                 <Input placeholder="Practice Music"
                   onChangeText={(text) => this.setState({ itemFourText: text })}
                   value={this.state.itemFourText} />
+			      <Text>Current progress: {this.state.taskProgress[3]}</Text>
               </Body>
             </ListItem>
             <ListItem>
@@ -125,6 +134,7 @@ export default class DailyToDoList extends Component {
                 <Input placeholder="Study Foreign Language"
                   onChangeText={(text) => this.setState({ itemFiveText: text })}
                   value={this.state.itemFiveText} />
+			      <Text>Current progress: {this.state.taskProgress[4]}</Text>
               </Body>
             </ListItem>
             <ListItem>
@@ -136,12 +146,14 @@ export default class DailyToDoList extends Component {
                 <Input placeholder="Study Coding"
                   onChangeText={(text) => this.setState({ itemSixText: text })}
                   value={this.state.itemSixText} />
+			      <Text>Current progress: {this.state.taskProgress[5]}</Text>
               </Body>
             </ListItem>
 			<ListItem>
 			  <CheckBox checked={this.state.isComplete} color="black"/>
 			  <Body>
 			    <Text>{this.state.isCompleteText}</Text>
+			    <Text>Current progress: {this.state.taskProgress[6]}</Text>
 			  </Body>
 			</ListItem>
           </Form>
