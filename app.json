@@ -5,6 +5,7 @@
 	"version": "1.1.0",
 	"slug": "daily-todo-list",
     "sdkVersion": "26.0.0",
+	"description": "A productivity tool for tasks you want to complete every day.",
 	"android": {
 		"package": "com.cpye.dailytodolist"
 	}
