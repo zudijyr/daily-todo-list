@@ -40,6 +40,8 @@ export default class DailyToDoList extends Component {
 	if (!err && result && typeof(result) === 'string' && result !== ''){
 		if (result != localDateString) {
 			//leave it in basic state, all taskBools false 
+			let taskBools = [ ...this.state.taskBools ];
+			this.storeItem('taskBools', taskBools);
 			//TODO subtract progress for missing days
 		} else {
 			//result should be a non-empty string-array of bools
@@ -52,7 +54,6 @@ export default class DailyToDoList extends Component {
 		}
 	}
 	});
-    this.storeItem('lastDate', localDateString);
 	AsyncStorage.setItem('lastDate', localDateString);
 
     AsyncStorage.getItem('taskLevels', (err, result) => {
