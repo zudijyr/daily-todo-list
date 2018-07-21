@@ -32,17 +32,40 @@ export default class DailyToDoList extends Component {
     }
   }
 
+  makeDate(date_string){
+	var day   = parseInt(date_string.substring(8,10));
+	var month  = parseInt(date_string.substring(5,7));
+	var year   = parseInt(date_string.substring(0,4));
+	var date = new Date(year, month-1, day);
+	return date;
+  }
+
+  getDayDiff(oldDateString, currentDateString) {
+	var oldDate = this.makeDate(oldDateString);
+	var currentDate = this.makeDate(currentDateString);
+	var timeDiff = currentDate.getTime() - oldDate.getTime();
+	var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+	if (diffDays < 0) {
+		//this shouldn't happen outside of flukey situations like traveling across
+		//time zones at midnight, etc
+		return 0;
+	} else { return diffDays; }
+  }
+
   componentDidMount() {
 	var date = new Date();
-	var localDateTime = new Date(date.getTime()-date.getTimezoneOffset()*60*1000);
+	var localDateTime = new Date(date.getTime()-date.getTimezoneOffset()*6000*1000);
 	var localDateString = new Date(localDateTime).toJSON().slice(0, 10);
+	//Throwing away time zone info because I want to track days by local time zone, not UTC
     AsyncStorage.getItem('lastDate', (err, result) => {
 	if (!err && result && typeof(result) === 'string' && result !== ''){
 		if (result != localDateString) {
 			//leave it in basic state, all taskBools false 
+			//TODO check taskBool status before resetting so I can adjust progress for that day accordingly
 			let taskBools = [ ...this.state.taskBools ];
 			this.storeItem('taskBools', taskBools);
 			//TODO subtract progress for missing days
+			var DayDiff = this.getDayDiff(result, localDateString);
 		} else {
 			//result should be a non-empty string-array of bools
     		AsyncStorage.getItem('taskBools', (err, result) => {
