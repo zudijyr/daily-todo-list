@@ -53,50 +53,64 @@ export default class DailyToDoList extends Component {
   }
 
   componentDidMount() {
-	var date = new Date();
-	var localDateTime = new Date(date.getTime()-date.getTimezoneOffset()*6000*1000);
-	var localDateString = new Date(localDateTime).toJSON().slice(0, 10);
-	//Throwing away time zone info because I want to track days by local time zone, not UTC
-    AsyncStorage.getItem('lastDate', (err, result) => {
-	if (!err && result && typeof(result) === 'string' && result !== ''){
-		if (result != localDateString) {
-			//leave it in basic state, all taskBools false 
-			//TODO check taskBool status before resetting so I can adjust progress for that day accordingly
-			let taskBools = [ ...this.state.taskBools ];
-			this.storeItem('taskBools', taskBools);
-			//TODO subtract progress for missing days
-			var DayDiff = this.getDayDiff(result, localDateString);
-		} else {
-			//result should be a non-empty string-array of bools
-    		AsyncStorage.getItem('taskBools', (err, result) => {
-			if (!err && result && typeof(result) === 'string' && result !== '[]'){
-				let taskBools = JSON.parse(result);
-				this.setState({ taskBools });
-			}
-			});
-		}
-	}
-	});
-	AsyncStorage.setItem('lastDate', localDateString);
-
+	let taskLevels = [ ...this.state.taskLevels ];
+	let taskProgress = [ ...this.state.taskProgress ];
+	let taskRemaining = [ ...this.state.taskRemaining ];
+	let taskBools = [ ...this.state.taskBools ]; //all false at this point
     AsyncStorage.getItem('taskLevels', (err, result) => {
-	if (!err && result && typeof(result) === 'string' && result !== '[]'){
-		let taskLevels = JSON.parse(result);
+	  if (!err && result && typeof(result) === 'string' && result !== '[]'){
+		taskLevels = JSON.parse(result);
 		this.setState({ taskLevels });
-	}
+	  }
 	});
     AsyncStorage.getItem('taskProgress', (err, result) => {
-	if (!err && result && typeof(result) === 'string' && result !== '[]'){
-		let taskProgress = JSON.parse(result);
+	  if (!err && result && typeof(result) === 'string' && result !== '[]'){
+		taskProgress = JSON.parse(result);
 		this.setState({ taskProgress });
-	}
+	  }
 	});
     AsyncStorage.getItem('taskRemaining', (err, result) => {
-	if (!err && result && typeof(result) === 'string' && result !== '[]'){
-		let taskRemaining = JSON.parse(result);
+	  if (!err && result && typeof(result) === 'string' && result !== '[]'){
+		taskRemaining = JSON.parse(result);
 		this.setState({ taskRemaining });
-	}
+	  }
 	});
+    AsyncStorage.getItem('taskBools', (err, result) => {
+	  if (!err && result && typeof(result) === 'string' && result !== '[]'){
+		taskBools = JSON.parse(result);
+		this.setState({ taskBools });
+	  }
+	});
+
+	var date = new Date();
+	var localDateTime = new Date(date.getTime()-date.getTimezoneOffset()*60*1000);
+	var localDateString = new Date(localDateTime).toJSON().slice(0, 10);
+	//Throwing away time zone info because I want to track days by local time zone, not UTC
+    AsyncStorage.getItem('lastDate', (err, lastDate) => {
+	  if (!err && lastDate && typeof(lastDate) === 'string' && lastDate !== '' && lastDate != localDateString) {
+		  //Adjust and reset if it's a new day
+	  	  for (var i=0, l=taskBools.length; i<=l; i++) { //handle the undone tasks from yesterday
+	  	  	if (!taskBools[i] && taskProgress[i] > 0) {
+	  	  		taskProgress[i]--;
+	  	  		taskRemaining[i]++;
+	  	  	}
+	  	  }
+	  	  var dayDiff = this.getDayDiff(lastDate, localDateString);
+	  	  for (var i=0, l=taskBools.length; i<=l; i++) { //subtract for days skipped, not counting yesterday
+		  	taskBools[i] = false;
+		  	missedDayChange = Math.min(dayDiff-1, taskProgress[i])
+	  	  	taskProgress[i] = taskProgress[i] - missedDayChange;
+	  	  	taskRemaining[i] = taskRemaining[i] + missedDayChange;
+	  	  }
+		  this.setState({ taskBools }); //now all false
+		  this.storeItem('taskBools', taskBools);
+		  this.setState({ taskProgress });
+ 		  this.storeItem('taskProgress', taskProgress);
+		  this.setState({ taskRemaining });
+ 		  this.storeItem('taskRemaining', taskRemaining);
+	  }
+	});
+	AsyncStorage.setItem('lastDate', localDateString);
   }
 
   checkCallback() {
