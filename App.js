@@ -16,13 +16,9 @@ export default class DailyToDoList extends Component {
 		keyIndex: 3,
 		data: [{key: '0', text: 'first task', bool: false, taskLevel: 1, taskProgress: 0, taskRemaining: 3},
 			   {key: '1', text: 'second task', bool: false, taskLevel: 1, taskProgress: 0, taskRemaining: 3},
-			   {key: '2', text: 'second third task', bool: false, taskLevel: 1, taskProgress: 0, taskRemaining: 3},
+			   {key: '2', text: 'third task', bool: false, taskLevel: 1, taskProgress: 0, taskRemaining: 3},
 			],
-		//taskBools: [false, false, false, false, false, false],
 		//itemTexts: ['Aerobic Exercise', 'Anaerobic Exercise', 'Meditation','Practice Music', 'Study Foreign Language', 'Study Coding'],
-		//taskLevels:    [0,0,0,0,0,0,0],
-		//taskProgress:  [0,0,0,0,0,0,0],
-		//taskRemaining: [3,3,3,3,3,3,3],
 		isComplete: false,
 		isCompleteText: incompleteText,
 		completionLevel: 1,
@@ -30,7 +26,6 @@ export default class DailyToDoList extends Component {
 		completionRemaining: 3,
 	}
 	this.onCheckPress = this.onCheckPress.bind(this);
-
   }
 
   async storeItem(key, item) {
@@ -62,33 +57,23 @@ export default class DailyToDoList extends Component {
   }
 
   componentDidMount() {
-	//let taskLevels = [ ...this.state.taskLevels ];
-	//let taskProgress = [ ...this.state.taskProgress ];
-	//let taskRemaining = [ ...this.state.taskRemaining ];
-	//let taskBools = [ ...this.state.taskBools ]; //all false at this point
-    AsyncStorage.getItem('taskLevels', (err, result) => {
-	  if (!err && result && typeof(result) === 'string' && result !== '[]'){
-		taskLevels = JSON.parse(result);
-		this.setState({ taskLevels });
-	  }
-	});
-    AsyncStorage.getItem('taskProgress', (err, result) => {
-	  if (!err && result && typeof(result) === 'string' && result !== '[]'){
-		taskProgress = JSON.parse(result);
-		this.setState({ taskProgress });
-	  }
-	});
-    AsyncStorage.getItem('taskRemaining', (err, result) => {
-	  if (!err && result && typeof(result) === 'string' && result !== '[]'){
-		taskRemaining = JSON.parse(result);
-		this.setState({ taskRemaining });
-	  }
-	});
-    AsyncStorage.getItem('taskBools', (err, result) => {
-	  if (!err && result && typeof(result) === 'string' && result !== '[]'){
-		taskBools = JSON.parse(result);
-		this.setState({ taskBools });
-	  }
+
+	let keys = ['keyIndex', 'data', 'isComplete', 'completionLevel', 'completionProgress', 'completionRemaining'];
+	//AsyncStorage.multiRemove(keys, (err) => { }); //For testing
+		  
+    AsyncStorage.multiGet(keys, (err, results) => {
+		for (var i = 0; i < results.length; i++) {
+			let key = results[i][0];
+			let value = results[i][1];
+		    if (typeof(value) === 'string' && value !== '[]') {
+		    	if (key == 'keyIndex') { this.setState({ keyIndex: JSON.parse(value) }) }
+		    	if (key == 'data') { this.setState({ data: JSON.parse(value) }) }
+		    	if (key == 'completionLevel') { this.setState({ completionLevel: JSON.parse(value) }) }
+		    	if (key == 'completionProgress') { this.setState({ completionProgress: JSON.parse(value) }) }
+		    	if (key == 'completionRemaining') { this.setState({ completionRemaining: JSON.parse(value) }) }
+		    	if (key == 'isComplete') { this.setState({ isComplete: JSON.parse(value) }) }
+			}
+		}
 	});
 
 	var date = new Date();
@@ -123,7 +108,7 @@ export default class DailyToDoList extends Component {
   }
 
   allCompleteCallback() {
-	let taskProgress = [ this.state.data.map(a => a.taskProgress) ];
+	//let taskProgress = [ this.state.data.map(a => a.taskProgress) ];
 	let tasksComplete = this.state.data.map(a => a.bool);
 	let isComplete = this.state.isComplete;
 	let completionProgress = this.state.completionProgress;
@@ -131,12 +116,14 @@ export default class DailyToDoList extends Component {
 	let completionLevel = this.state.completionLevel;
 
 	if ( tasksComplete.every(function(value) { return value === true }) && !isComplete) {
-		this.setState({ isComplete: true });
+		isComplete = true;
+		this.setState({ isComplete });
 		this.setState({ isCompleteText: completeText });
 		completionProgress += 1;
 		completionRemaining -= 1;
 	} else if (isComplete) {
-		this.setState({ isComplete: false });
+		isComplete = false;
+		this.setState({ isComplete });
 		this.setState({ isCompleteText: incompleteText });
 		completionProgress -= 1;
 		completionRemaining += 1;
@@ -153,10 +140,13 @@ export default class DailyToDoList extends Component {
 	}
 	this.setState({ completionProgress, completionRemaining, completionLevel });
 
-    //this.storeItem('taskProgress', taskProgress);
-    //this.storeItem('taskLevels', taskLevels);
+    this.storeItem('data', this.state.data);
+    this.storeItem('keyIndex', this.state.keyIndex);
+    this.storeItem('isComplete', isComplete);
+    this.storeItem('completionLevel', completionLevel);
+    this.storeItem('completionProgress', completionProgress);
+    this.storeItem('completionRemaining', completionRemaining);
   }
-
 
   onCheckPress(item) {
 	item['bool'] = !item['bool'];
@@ -178,7 +168,6 @@ export default class DailyToDoList extends Component {
 		item['taskProgress'] = levelIncrease*item['taskLevel']-1;
 	}
 	this.setState({ item }, () => this.allCompleteCallback()) ;
-    //this.storeItem('taskBools', taskBools);
   }
 
   _renderItem = ({item}) => (
