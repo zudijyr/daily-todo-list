@@ -14,11 +14,10 @@ export default class DailyToDoList extends Component {
     super(props)
     this.state = { 
 		keyIndex: 3,
-		data: [{key: '0', text: 'first task', bool: false, taskLevel: 1, taskProgress: 0, taskRemaining: 3},
-			   {key: '1', text: 'second task', bool: false, taskLevel: 1, taskProgress: 0, taskRemaining: 3},
-			   {key: '2', text: 'third task', bool: false, taskLevel: 1, taskProgress: 0, taskRemaining: 3},
+		data: [{key: '0', text: 'Aerobic Exercise', bool: false, taskLevel: 1, taskProgress: 0, taskRemaining: 3},
+			   {key: '1', text: 'Practice Coding', bool: false, taskLevel: 1, taskProgress: 0, taskRemaining: 3},
+			   {key: '2', text: 'Study Foreign Language', bool: false, taskLevel: 1, taskProgress: 0, taskRemaining: 3},
 			],
-		//itemTexts: ['Aerobic Exercise', 'Anaerobic Exercise', 'Meditation','Practice Music', 'Study Foreign Language', 'Study Coding'],
 		isComplete: false,
 		isCompleteText: incompleteText,
 		completionLevel: 1,
@@ -56,6 +55,51 @@ export default class DailyToDoList extends Component {
 	} else { return diffDays; }
   }
 
+  handleDayChanges() {
+	let data = this.state.data;
+	let isComplete = this.state.isComplete;
+	let completionProgress = this.state.completionProgress;
+	let completionRemaining = this.state.completionRemaining;
+	var date = new Date();
+	var localDateTime = new Date(date.getTime()-date.getTimezoneOffset()*60*1000);
+	var localDateString = new Date(localDateTime).toJSON().slice(0, 10);
+	//Throwing away time zone info because I want to track days by local time zone, not UTC
+    AsyncStorage.getItem('lastDate', (err, lastDate) => {
+	  if (!err && lastDate && typeof(lastDate) === 'string' && lastDate !== '' && lastDate != localDateString) {
+		  //Adjust and reset if it's a new day
+	  	  var dayDiff = this.getDayDiff(lastDate, localDateString);
+	  	  for (var i=0, l=data.length; i<l; i++) { 
+	  	  	if (!data[i]['bool'] && data[i]['taskProgress'] > 0) { //handle the undone tasks from last day
+	  	  	  data[i]['taskProgress']--;
+	  	  	  data[i]['taskRemaining']++;
+	  	  	}
+		  	missedDayChange = Math.min(dayDiff-1, data[i]['taskProgress']) //subtract for days skipped, not counting last day
+	  	  	data[i]['taskProgress'] -= missedDayChange;
+	  	  	data[i]['taskRemaining'] += missedDayChange;
+	  	  }
+	  	  if (!isComplete && completionProgress > 0) { //don't penalize for last completed day
+		    completionProgress--;
+		    completionRemaining++;
+		  }
+		  isComplete = false;
+		  missedDayChange = Math.min(dayDiff-1, completionProgress) //subtract for days skipped, not counting last day
+	  	  completionProgress -= missedDayChange;
+	  	  completionRemaining += missedDayChange;
+		  this.setState({ data }); //now all false
+		  this.storeItem('data', data);
+		  this.setState({ isComplete, completionProgress, completionRemaining });
+		  this.storeItem('isComplete', isComplete);
+		  this.storeItem('completionProgress', completionProgress);
+		  this.storeItem('completionRemaining', completionRemaining);
+	  }
+	});
+	AsyncStorage.setItem('lastDate', localDateString);
+	//debug lines
+	//testDateTime = new Date("2018-08-23");
+	//testDateString = new Date(testDateTime).toJSON().slice(0, 10);
+	//AsyncStorage.setItem('lastDate', testDateString);
+  }
+
   componentDidMount() {
 
 	let keys = ['keyIndex', 'data', 'isComplete', 'completionLevel', 'completionProgress', 'completionRemaining'];
@@ -74,41 +118,12 @@ export default class DailyToDoList extends Component {
 		    	if (key == 'isComplete') { this.setState({ isComplete: JSON.parse(value) }) }
 			}
 		}
+		this.handleDayChanges();
 	});
 
-	var date = new Date();
-	var localDateTime = new Date(date.getTime()-date.getTimezoneOffset()*60*1000);
-	var localDateString = new Date(localDateTime).toJSON().slice(0, 10);
-	//Throwing away time zone info because I want to track days by local time zone, not UTC
-    AsyncStorage.getItem('lastDate', (err, lastDate) => {
-	  if (!err && lastDate && typeof(lastDate) === 'string' && lastDate !== '' && lastDate != localDateString) {
-		  //Adjust and reset if it's a new day
-	  	  for (var i=0, l=taskBools.length; i<=l; i++) { //handle the undone tasks from yesterday
-	  	  	if (!taskBools[i] && taskProgress[i] > 0) {
-	  	  		taskProgress[i]--;
-	  	  		taskRemaining[i]++;
-	  	  	}
-	  	  }
-	  	  var dayDiff = this.getDayDiff(lastDate, localDateString);
-	  	  for (var i=0, l=taskBools.length; i<=l; i++) { //subtract for days skipped, not counting yesterday
-		  	taskBools[i] = false;
-		  	missedDayChange = Math.min(dayDiff-1, taskProgress[i])
-	  	  	taskProgress[i] = taskProgress[i] - missedDayChange;
-	  	  	taskRemaining[i] = taskRemaining[i] + missedDayChange;
-	  	  }
-		  this.setState({ taskBools }); //now all false
-		  this.storeItem('taskBools', taskBools);
-		  this.setState({ taskProgress });
- 		  this.storeItem('taskProgress', taskProgress);
-		  this.setState({ taskRemaining });
- 		  this.storeItem('taskRemaining', taskRemaining);
-	  }
-	});
-	AsyncStorage.setItem('lastDate', localDateString);
   }
 
   allCompleteCallback() {
-	//let taskProgress = [ this.state.data.map(a => a.taskProgress) ];
 	let tasksComplete = this.state.data.map(a => a.bool);
 	let isComplete = this.state.isComplete;
 	let completionProgress = this.state.completionProgress;
