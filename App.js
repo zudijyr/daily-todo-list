@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import {
 	Container, Header, Content, ListItem, CheckBox, Body, Form, Input
 } from 'native-base';
-import { Alert,TouchableOpacity,View, Text, TextInput, FlatList, Button, AsyncStorage } from "react-native";
+import { Alert,AppState,TouchableOpacity,View, Text, TextInput, FlatList, Button, AsyncStorage } from "react-native";
 
 const incompleteText = "Hang in there";
 const completeText = "All Done! Congrats!";
@@ -23,8 +23,10 @@ export default class DailyToDoList extends Component {
 		completionLevel: 1,
 		completionProgress: 0,
 		completionRemaining: 3,
+		appState: AppState.currentState,
 	}
 	this.onCheckPress = this.onCheckPress.bind(this);
+	this._delete = this._delete.bind(this);
   }
 
   async storeItem(key, item) {
@@ -101,7 +103,15 @@ export default class DailyToDoList extends Component {
   }
 
   componentDidMount() {
+	AppState.addEventListener('change', this._handleAppStateChange);
+  }
 
+  componentWillUnmount() {
+	AppState.removeEventListener('change', this._handleAppStateChange);
+  }
+
+  _handleAppStateChange = (nextAppState) => {
+    this.setState({appState: nextAppState});
 	let keys = ['keyIndex', 'data', 'isComplete', 'completionLevel', 'completionProgress', 'completionRemaining'];
 	//AsyncStorage.multiRemove(keys, (err) => { }); //For testing
 		  
@@ -120,7 +130,6 @@ export default class DailyToDoList extends Component {
 		}
 		this.handleDayChanges();
 	});
-
   }
 
   allCompleteCallback() {
@@ -186,29 +195,57 @@ export default class DailyToDoList extends Component {
   }
 
   _renderItem = ({item}) => (
-   <ListItem>
-	<CheckBox checked={item.bool} color="green"
-		style={{marginRight: 20}}
-		onPress={
-		        () => this.onCheckPress(item)
-		} />
-	<Body>
+   <ListItem >
+	<View style={{marginRight: 20, flexDirection: 'column', justifyContent: 'center'}}>
 	<Text>{item.text}</Text>
-    <Text>Current level: {item.taskLevel}</Text>
-    <Text>Current progress: {item.taskProgress}</Text>
-    <Text>To next level: {item.taskRemaining}</Text>
-	</Body>
+	<View style={{marginRight: 20, flexDirection: 'row', alignItems: 'center'}}>
+		<CheckBox checked={item.bool} color="green"
+			style={{marginRight: 20}}
+			onPress={
+				() => this.onCheckPress(item)
+			} />
+		<View style={{marginRight: 20, flexDirection: 'column'}}>
+    	<Text>Current level: {item.taskLevel}</Text>
+    	<Text>Current progress: {item.taskProgress}</Text>
+    	<Text>To next level: {item.taskRemaining}</Text>
+		</View>
+			<TouchableOpacity>
+			<Button
+			    title="Delete This Task"
+				color="red"
+				style={{marginLeft: 10, marginRight: 20, flex: 1}}
+				onPress={() => Alert.alert(
+				    'Confirm Delete',
+				    'This will permanently delete your progress for this task. Are you sure?',
+				    [
+				      {text: 'OK', onPress: () => this._delete(item)},
+				      {text: 'Cancel', },
+				    ],
+				  )}
+			/>
+			</TouchableOpacity>
+	    </View>
+	</View>
    </ListItem>
   );
 
   _press = () => {
 	this.state.data.push({ key: JSON.stringify(this.state.keyIndex),
-			text: this.state.newTaskText, bool: false, taskLevel: 1, taskProgress: 0, taskRemaining: levelIncrease}
+		text: this.state.newTaskText, bool: false, taskLevel: 1, taskProgress: 0, taskRemaining: levelIncrease}
 		);
 	this.setState(({ keyIndex }) => ({
 	    keyIndex: keyIndex + 1
     }), () => this.allCompleteCallback());
 	Alert.alert('Added new task: ' + JSON.stringify(this.state.newTaskText));
+  };
+
+  _delete = (item) => {
+	let data = this.state.data;
+	var index = JSON.stringify(data.indexOf(item));
+	if (index > -1) {
+	  data.splice(index, 1);
+	  this.setState({data}, this.allCompleteCallback());
+	}
   };
 
   render() {
